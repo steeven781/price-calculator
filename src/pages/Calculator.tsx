@@ -123,11 +123,23 @@ export default function Calculator() {
       : "cuotas_calculadora.pdf";
 
     const opt = {
-      margin: 10,
+      margin: [5, 5, 5, 5],
       filename,
       image: { type: "jpeg", quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+      html2canvas: { 
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        windowWidth: 800,
+        windowHeight: 1200
+      },
+      jsPDF: { 
+        unit: "mm", 
+        format: "a4", 
+        orientation: "portrait",
+        compress: true
+      },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
     };
 
     // @ts-ignore - html2pdf is loaded via CDN
@@ -140,7 +152,7 @@ export default function Calculator() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4 overflow-x-hidden">
       <Card className="w-full max-w-[700px] p-5 md:p-6 border-slate-200/20 shadow-2xl">
         <div className="space-y-4">
           <div className="text-center space-y-2">
@@ -322,39 +334,39 @@ export default function Calculator() {
                       <Info className="h-4 w-4 text-muted-foreground" />
                     </h2>
 
-                    <div id="cuotasExport" style={{ backgroundColor: '#ffffff', padding: '15px', borderRadius: '8px' }}>
+                    <div id="cuotasExport" style={{ backgroundColor: '#ffffff', padding: '12px', borderRadius: '8px' }}>
                       {/* PDF Header - Product Description */}
-                      <div style={{ marginBottom: '12px', textAlign: 'center' }}>
-                        <h1 style={{ fontSize: '18px', fontWeight: 'bold', color: '#1e293b', margin: '0 0 4px 0' }}>
+                      <div style={{ marginBottom: '8px', textAlign: 'center' }}>
+                        <h1 style={{ fontSize: '16px', fontWeight: 'bold', color: '#1e293b', margin: '0 0 3px 0' }}>
                           {description || "Producto"}
                         </h1>
-                        <p style={{ fontSize: '12px', color: '#64748b', margin: 0 }}>
+                        <p style={{ fontSize: '11px', color: '#64748b', margin: 0 }}>
                           Plan de Cuotas - Calculadora de Precios
                         </p>
                       </div>
 
                       {/* PDF Price Card */}
-                      <div style={{ background: 'linear-gradient(to bottom, #3b82f6 0%, #1d4ed8 100%)', padding: '10px', borderRadius: '8px', textAlign: 'center', marginBottom: '12px', border: '1px solid #2563eb' }}>
-                        <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#dbeafe', marginBottom: '4px', fontWeight: '600' }}>
+                      <div style={{ background: 'linear-gradient(to bottom, #3b82f6 0%, #1d4ed8 100%)', padding: '8px', borderRadius: '6px', textAlign: 'center', marginBottom: '10px', border: '1px solid #2563eb' }}>
+                        <div style={{ fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.03em', color: '#dbeafe', marginBottom: '3px', fontWeight: '600' }}>
                           Precio con tarjeta (contado)
                         </div>
-                        <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#ffffff', marginBottom: '2px' }}>
+                        <div style={{ fontSize: '22px', fontWeight: 'bold', color: '#ffffff', marginBottom: '2px' }}>
                           {formatCurrency(result.precioIVA)}
                         </div>
-                        <div style={{ fontSize: '11px', color: '#bfdbfe' }}>
+                        <div style={{ fontSize: '10px', color: '#bfdbfe' }}>
                           Incluye IVA ({IVA_PERCENT}%)
                         </div>
                       </div>
 
                       {/* PDF Table */}
-                      <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden', pageBreakInside: 'avoid' }}>
+                      <div style={{ border: '1px solid #e2e8f0', borderRadius: '6px', overflow: 'hidden', pageBreakInside: 'avoid' }}>
                         <table style={{ width: '100%', borderCollapse: 'collapse', pageBreakInside: 'avoid' }}>
                           <thead>
                             <tr style={{ backgroundColor: '#1e293b' }}>
                               <th style={{ 
                                 textAlign: 'left', 
-                                padding: '8px 10px',
-                                fontSize: '12px', 
+                                padding: '6px 8px',
+                                fontSize: '11px', 
                                 fontWeight: '600',
                                 color: '#ffffff',
                                 borderBottom: '1px solid #334155'
@@ -363,8 +375,8 @@ export default function Calculator() {
                               </th>
                               <th style={{ 
                                 textAlign: 'right', 
-                                padding: '8px 10px',
-                                fontSize: '12px', 
+                                padding: '6px 8px',
+                                fontSize: '11px', 
                                 fontWeight: '600',
                                 color: '#ffffff',
                                 borderBottom: '1px solid #334155'
@@ -376,10 +388,10 @@ export default function Calculator() {
                           <tbody>
                             {result.installments.map((installment) => (
                               <tr key={installment.cuotas} style={{ backgroundColor: '#ffffff', borderBottom: '1px solid #f1f5f9' }} data-testid={`row-installment-${installment.cuotas}`}>
-                                <td style={{ padding: '6px 10px', fontSize: '13px', color: '#1e293b', fontWeight: '500' }} data-testid={`text-cuotas-${installment.cuotas}`}>
+                                <td style={{ padding: '5px 8px', fontSize: '12px', color: '#1e293b', fontWeight: '500' }} data-testid={`text-cuotas-${installment.cuotas}`}>
                                   {installment.cuotas} cuotas
                                 </td>
-                                <td style={{ padding: '6px 10px', fontSize: '13px', textAlign: 'right', color: '#0f172a', fontWeight: '600' }} data-testid={`text-monto-${installment.cuotas}`}>
+                                <td style={{ padding: '5px 8px', fontSize: '12px', textAlign: 'right', color: '#0f172a', fontWeight: '600' }} data-testid={`text-monto-${installment.cuotas}`}>
                                   {formatCurrency(installment.montoPorCuota)}
                                 </td>
                               </tr>
@@ -389,11 +401,11 @@ export default function Calculator() {
                       </div>
 
                       {/* PDF Footer */}
-                      <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #e2e8f0', textAlign: 'center' }}>
-                        <p style={{ fontSize: '10px', color: '#64748b', margin: '2px 0' }}>
+                      <div style={{ marginTop: '6px', paddingTop: '6px', borderTop: '1px solid #e2e8f0', textAlign: 'center' }}>
+                        <p style={{ fontSize: '9px', color: '#64748b', margin: '1px 0' }}>
                           Los precios incluyen IVA ({IVA_PERCENT}%)
                         </p>
-                        <p style={{ fontSize: '10px', color: '#64748b', margin: '2px 0' }}>
+                        <p style={{ fontSize: '9px', color: '#64748b', margin: '1px 0' }}>
                           Los montos incluyen todos los impuestos de ley
                         </p>
                       </div>
