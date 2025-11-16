@@ -15,6 +15,7 @@ import {
   Download,
   Eraser,
   Info,
+  Copy,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -29,6 +30,7 @@ import {
 export default function Calculator() {
   const [basePrice, setBasePrice] = useState<string>("");
   const [profitPercent, setProfitPercent] = useState<string>("");
+  const [profitOption, setProfitOption] = useState<string>("custom");
   const [description, setDescription] = useState<string>("");
   const [paymentType, setPaymentType] = useState<"efectivo" | "tarjeta">("efectivo");
   const [result, setResult] = useState<CalculationResult | null>(null);
@@ -36,6 +38,55 @@ export default function Calculator() {
 
   const formatCurrency = (value: number): string => {
     return `Q ${value.toFixed(2)}`;
+  };
+
+  const handleProfitOptionChange = (value: string) => {
+    setProfitOption(value);
+    if (value !== "custom") {
+      setProfitPercent(value);
+    }
+  };
+
+  const handleCopyToClipboard = () => {
+    if (!result) {
+      toast({
+        variant: "destructive",
+        title: "No hay datos",
+        description: "Primero debes calcular los precios.",
+      });
+      return;
+    }
+
+    const efectivoPrice = result.precioVenta.toFixed(2);
+    const tarjetaPrice = result.precioIVA.toFixed(2);
+    
+    const cuotasText = result.installments
+      .map(inst => `${inst.cuotas} cuotas — Q${inst.montoPorCuota.toFixed(2)}`)
+      .join('\n');
+
+    const message = `✨ *Precio Especial en Efectivo: Q${efectivoPrice}*
+Ahorra y aprovecha este beneficio exclusivo, ¡es el mejor precio! 💵
+
+💳 *Pago con Tarjeta: Q${tarjetaPrice}*
+Ideal si prefieres comodidad y rapidez.
+
+📆 *Págalo en Cuotas:*
+${cuotasText}
+
+✨ Tú decides cómo pagarlo, lo importante es que puedas tenerlo y disfrutarlo ahora mismo ✨`;
+
+    navigator.clipboard.writeText(message).then(() => {
+      toast({
+        title: "¡Copiado!",
+        description: "El mensaje se copió al portapapeles.",
+      });
+    }).catch(() => {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudo copiar al portapapeles.",
+      });
+    });
   };
 
   const handleCalculate = () => {
@@ -153,24 +204,24 @@ export default function Calculator() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4 overflow-x-hidden">
-      <Card className="w-full max-w-[700px] p-5 md:p-6 border-slate-200/20 shadow-2xl">
-        <div className="space-y-4">
+      <Card className="w-full max-w-[700px] p-6 md:p-8 border-slate-200/20 shadow-2xl">
+        <div className="space-y-6">
           <div className="text-center space-y-2">
-            <h1 className="text-xl md:text-2xl font-semibold text-foreground">
+            <h1 className="text-2xl md:text-3xl font-semibold text-foreground">
               Calculadora de Precio y Cuotas
             </h1>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-base text-muted-foreground">
               Ingresa el <strong>Precio Base en USD</strong> y el{" "}
               <strong>% de ganancia</strong>. Internamente se convierte a
               Quetzales (Q) usando <strong>TC = {EXCHANGE_RATE}</strong>.
             </p>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="basePrice" className="flex items-center justify-between text-sm">
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="space-y-3">
+              <Label htmlFor="basePrice" className="flex items-center justify-between text-base font-medium">
                 <span className="flex items-center gap-2">
-                  <DollarSign className="h-4 w-4" />
+                  <DollarSign className="h-5 w-5" />
                   Precio Base (USD)
                 </span>
                 <Badge variant="secondary">
@@ -186,37 +237,72 @@ export default function Calculator() {
                 value={basePrice}
                 onChange={(e) => setBasePrice(e.target.value)}
                 data-testid="input-base-price"
+                className="h-12 text-lg"
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="profitPercent" className="flex items-center justify-between text-sm">
-                <span className="flex items-center gap-2">
-                  <Percent className="h-4 w-4" />
-                  % de Ganancia
-                </span>
-                <Badge variant="secondary">
-                  Ej. 30 = 30%
-                </Badge>
+            <div className="space-y-3">
+              <Label className="flex items-center gap-2 text-base font-medium">
+                <Percent className="h-5 w-5" />
+                % de Ganancia
               </Label>
-              <Input
-                id="profitPercent"
-                type="number"
-                placeholder="Ej. 30"
-                step="0.01"
-                min="0"
-                max="99"
-                value={profitPercent}
-                onChange={(e) => setProfitPercent(e.target.value)}
-                data-testid="input-profit-percent"
-              />
+              <RadioGroup
+                value={profitOption}
+                onValueChange={handleProfitOptionChange}
+                className="grid grid-cols-2 gap-3"
+              >
+                <div className="flex items-center space-x-3 py-1">
+                  <RadioGroupItem value="20" id="profit-20" />
+                  <Label htmlFor="profit-20" className="cursor-pointer font-normal text-base">
+                    20%
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-3 py-1">
+                  <RadioGroupItem value="25" id="profit-25" />
+                  <Label htmlFor="profit-25" className="cursor-pointer font-normal text-base">
+                    25%
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-3 py-1">
+                  <RadioGroupItem value="30" id="profit-30" />
+                  <Label htmlFor="profit-30" className="cursor-pointer font-normal text-base">
+                    30%
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-3 py-1 col-span-2">
+                  <RadioGroupItem value="35" id="profit-35" />
+                  <Label htmlFor="profit-35" className="cursor-pointer font-normal text-base">
+                    35%
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-3 py-1 col-span-2">
+                  <RadioGroupItem value="custom" id="profit-custom" />
+                  <Label htmlFor="profit-custom" className="cursor-pointer font-normal text-base">
+                    % Personalizado
+                  </Label>
+                </div>
+              </RadioGroup>
+              {profitOption === "custom" && (
+                <Input
+                  id="profitPercent"
+                  type="number"
+                  placeholder="Ej. 30"
+                  step="0.01"
+                  min="0"
+                  max="99"
+                  value={profitPercent}
+                  onChange={(e) => setProfitPercent(e.target.value)}
+                  data-testid="input-profit-percent"
+                  className="mt-2 h-12 text-lg"
+                />
+              )}
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="description" className="flex items-center justify-between text-sm">
+          <div className="space-y-3">
+            <Label htmlFor="description" className="flex items-center justify-between text-base font-medium">
               <span className="flex items-center gap-2">
-                <FileText className="h-4 w-4" />
+                <FileText className="h-5 w-5" />
                 Descripción
               </span>
               <Badge variant="secondary">
@@ -230,56 +316,56 @@ export default function Calculator() {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               data-testid="input-description"
+              className="h-12 text-lg"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label className="text-sm">Tipo de pago</Label>
+          <div className="space-y-3">
+            <Label className="text-base font-medium">Tipo de pago</Label>
             <RadioGroup
               value={paymentType}
               onValueChange={(value) => setPaymentType(value as "efectivo" | "tarjeta")}
-              className="flex gap-4 flex-wrap"
+              className="flex gap-6 flex-wrap"
             >
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-3">
                 <RadioGroupItem value="efectivo" id="efectivo" data-testid="radio-efectivo" />
-                <Label htmlFor="efectivo" className="flex items-center gap-2 cursor-pointer font-normal">
-                  <Banknote className="h-4 w-4" />
+                <Label htmlFor="efectivo" className="flex items-center gap-2 cursor-pointer font-normal text-base">
+                  <Banknote className="h-5 w-5" />
                   Efectivo
                 </Label>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-3">
                 <RadioGroupItem value="tarjeta" id="tarjeta" data-testid="radio-tarjeta" />
-                <Label htmlFor="tarjeta" className="flex items-center gap-2 cursor-pointer font-normal">
-                  <CreditCard className="h-4 w-4" />
+                <Label htmlFor="tarjeta" className="flex items-center gap-2 cursor-pointer font-normal text-base">
+                  <CreditCard className="h-5 w-5" />
                   Tarjeta (IVA + cuotas)
                 </Label>
               </div>
             </RadioGroup>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <Button
-              onClick={handleCalculate}
-              className="w-full bg-gradient-to-br from-primary to-chart-2"
-              data-testid="button-calculate"
-            >
-              <CalculatorIcon className="mr-2 h-4 w-4" />
-              Calcular
-            </Button>
-            <Button
-              onClick={handleClear}
-              variant="destructive"
-              className="w-full"
-              data-testid="button-clear"
-            >
-              <Eraser className="mr-2 h-4 w-4" />
-              Limpiar
-            </Button>
-          </div>
+          <Button
+            onClick={handleCalculate}
+            className="w-full bg-gradient-to-br from-primary to-chart-2 h-12 text-lg"
+            data-testid="button-calculate"
+          >
+            <CalculatorIcon className="mr-2 h-5 w-5" />
+            Calcular
+          </Button>
+
+          <Button
+            onClick={handleClear}
+            variant="destructive"
+            className="w-full h-12 text-lg"
+            data-testid="button-clear"
+          >
+            <Eraser className="mr-2 h-5 w-5" />
+            Limpiar
+          </Button>
 
           {result && (
             <div className="space-y-4 pt-4 border-t">
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-muted-foreground">Precio Base en Q (TC = {EXCHANGE_RATE}):</span>
                   <span className="font-medium" data-testid="text-base-q">
@@ -329,9 +415,9 @@ export default function Calculator() {
                   </div>
 
                   <div className="space-y-3">
-                    <h2 className="text-base font-semibold flex items-center gap-2">
+                    <h2 className="text-lg font-semibold flex items-center gap-2">
                       Tabla de cuotas
-                      <Info className="h-4 w-4 text-muted-foreground" />
+                      <Info className="h-5 w-5 text-muted-foreground" />
                     </h2>
 
                     <div id="cuotasExport" style={{ backgroundColor: '#ffffff', padding: '12px', borderRadius: '8px' }}>
@@ -411,15 +497,27 @@ export default function Calculator() {
                       </div>
                     </div>
 
-                    <Button
-                      onClick={handleExportPDF}
-                      variant="outline"
-                      className="w-full"
-                      data-testid="button-export-pdf"
-                    >
-                      <Download className="mr-2 h-4 w-4" />
-                      Guardar tabla de cuotas en PDF
-                    </Button>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Button
+                        onClick={handleExportPDF}
+                        variant="outline"
+                        className="w-full h-12 text-base"
+                        data-testid="button-export-pdf"
+                      >
+                        <Download className="mr-2 h-5 w-5" />
+                        Guardar en PDF
+                      </Button>
+
+                      <Button
+                        onClick={handleCopyToClipboard}
+                        variant="default"
+                        className="w-full h-12 text-base bg-gradient-to-br from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800"
+                        data-testid="button-copy-clipboard"
+                      >
+                        <Copy className="mr-2 h-5 w-5" />
+                        Copiar mensaje
+                      </Button>
+                    </div>
 
                     <p className="text-xs text-muted-foreground">
                       Cálculo de cada plan de cuotas a partir del precio con IVA.
