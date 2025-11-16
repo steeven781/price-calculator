@@ -231,11 +231,30 @@ ${cuotasText}
               <Input
                 id="basePrice"
                 type="number"
+                inputMode="decimal"
+                pattern="[0-9]*\.?[0-9]*"
                 placeholder="Ej. 100"
                 step="0.01"
                 min="0"
                 value={basePrice}
-                onChange={(e) => setBasePrice(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  // Only allow numbers and decimal point
+                  if (value === '' || /^\d*\.?\d*$/.test(value)) {
+                    setBasePrice(value);
+                  }
+                }}
+                onKeyPress={(e) => {
+                  // Prevent non-numeric characters except decimal point
+                  const char = e.key;
+                  if (!/[\d.]/.test(char)) {
+                    e.preventDefault();
+                  }
+                  // Prevent multiple decimal points
+                  if (char === '.' && basePrice.includes('.')) {
+                    e.preventDefault();
+                  }
+                }}
                 data-testid="input-base-price"
                 className="h-12 text-lg"
               />
@@ -286,12 +305,31 @@ ${cuotasText}
                 <Input
                   id="profitPercent"
                   type="number"
+                  inputMode="decimal"
+                  pattern="[0-9]*\.?[0-9]*"
                   placeholder="Ej. 30"
                   step="0.01"
                   min="0"
                   max="99"
                   value={profitPercent}
-                  onChange={(e) => setProfitPercent(e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    // Only allow numbers and decimal point
+                    if (value === '' || /^\d*\.?\d*$/.test(value)) {
+                      setProfitPercent(value);
+                    }
+                  }}
+                  onKeyPress={(e) => {
+                    // Prevent non-numeric characters except decimal point
+                    const char = e.key;
+                    if (!/[\d.]/.test(char)) {
+                      e.preventDefault();
+                    }
+                    // Prevent multiple decimal points
+                    if (char === '.' && profitPercent.includes('.')) {
+                      e.preventDefault();
+                    }
+                  }}
                   data-testid="input-profit-percent"
                   className="mt-2 h-12 text-lg"
                 />
